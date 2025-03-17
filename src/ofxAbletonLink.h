@@ -25,50 +25,36 @@
 namespace ofx {
     class AbletonLink {
         ableton::Link link;
-        double beat{0.0};
-        double phase{0.0};
-        double bpm{120.0};
-        double quantum{4.0};
-        bool is_playing{false};
+        double beat { 0.0 };
+        double phase { 0.0 };
+        double bpm { 120.0 };
+        double quantum { 4.0 };
+        bool is_playing { false };
         
     public:
-        ofEvent<double> bpmChanged;
-        ofEvent<std::size_t> numPeersChanged;
-        ofEvent<bool> playStateChanged;
+        ofEvent<double> onBpmChanged;
+        ofEvent<std::size_t> onNumPeersChanged;
+        ofEvent<bool> onPlayStateChanged;
         
         struct Setting {
-            Setting(double bpm = 120.0,
-                    double quantum = 4.0,
-                    bool enable = true,
-                    bool playStateSync = true)
-            : bpm(bpm)
-            , quantum(quantum)
-            , enable(enable)
-            , playStateSync(playStateSync)
-            {};
+            Setting(double bpm = 120.0, double quantum = 4.0, bool enable = true, bool playStateSync = true)
+            : bpm(bpm), quantum(quantum), enable(enable), playStateSync(playStateSync) {};
             
-            double bpm{120.0};
-            double quantum{4.0};
-            bool enable{true};
-            bool playStateSync{true};
+            double bpm { 120.0 };
+            double quantum { 4.0 };
+            bool enable { true };
+            bool playStateSync { true };
         };
-        AbletonLink(const Setting &setting = {})
-        : link(setting.bpm)
-        , bpm(setting.bpm)
-        , quantum(setting.quantum)
+      
+        AbletonLink(const Setting &setting = {}) : link(setting.bpm), bpm(setting.bpm), quantum(setting.quantum)
         {
             setEnable(setting.enable);
             setPlayStateSync(setting.playStateSync);
             
-            link.setTempoCallback([&](double bpm) {
-                ofNotifyEvent(bpmChanged, bpm);
-            });
-            link.setNumPeersCallback([&](std::size_t peers) {
-                ofNotifyEvent(numPeersChanged, peers);
-            });
-            link.setStartStopCallback([this](bool isPlaying) {
-                ofNotifyEvent(playStateChanged, isPlaying);
-            });
+            link.setTempoCallback([&](double bpm) { ofNotifyEvent(onBpmChanged, bpm); });
+            link.setNumPeersCallback([&](std::size_t peers) { ofNotifyEvent(onNumPeersChanged, peers); });
+            link.setStartStopCallback([this](bool isPlaying) { ofNotifyEvent(onPlayStateChanged, isPlaying); });
+          
             ofAddListener(ofEvents().update, this, &AbletonLink::update, OF_EVENT_ORDER_BEFORE_APP);
         };
         
@@ -78,7 +64,7 @@ namespace ofx {
         
         inline void setup(const Setting &setting = {}) {
             setEnable(setting.enable);
-            setBPM(setting.bpm);
+//            setBPM(setting.bpm);
             setQuantum(setting.quantum);
             setEnable(setting.enable);
             setPlayStateSync(setting.playStateSync);
@@ -104,8 +90,7 @@ namespace ofx {
         inline void enablePlayStateSync() { link.enableStartStopSync(true); };
         inline void disablePlayStateSync() { link.enableStartStopSync(false); };
         
-        inline bool isPlaying() const
-        { return link.captureAppSessionState().isPlaying(); };
+        inline bool isPlaying() const { return link.captureAppSessionState().isPlaying(); };
         inline void setIsPlaying(bool isPlaying) {
             const auto &&time = getTime();
             auto &&sessionState = get_session_state();
@@ -141,8 +126,7 @@ namespace ofx {
         void setQuantum(double quantum) { this->quantum = quantum; }
         double getQuantum() const { return quantum; }
         
-        std::chrono::microseconds getTime() const
-        { return link.clock().micros(); }
+        std::chrono::microseconds getTime() const { return link.clock().micros(); }
 
     private:
         void update(ofEventArgs &) {
